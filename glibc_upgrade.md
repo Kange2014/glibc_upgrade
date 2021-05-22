@@ -45,7 +45,7 @@ setenv.c:279:6: error: suggest explicit braces to avoid ambiguous ‘else’ [-W
 在源码中，找到setenv.c 文件，在line 279 加上{ }:  
     ep = __environ;
     if (ep != NULL)
- + {
+{
     while (*ep != NULL)
        if (!strncmp (*ep, name, len) && (*ep)[len] == '=')
      {
@@ -53,7 +53,7 @@ unsetenv (const char *name)
      }
        else
      ++ep;
-+ }
+ }
 
    UNLOCK;
 
@@ -132,7 +132,7 @@ cc1: all warnings being treated as errors
 改成这样：
 
    if (*loc != NULL) 
-+ {
+{
 
     for (i = 1; i < 16; ++i)
 
@@ -154,7 +154,7 @@ cc1: all warnings being treated as errors
 
     loc = &nis_server_cache[i];
 
-+ }
+}
   
   ————————————————
 
@@ -217,7 +217,7 @@ solution:
 
 ### 验证
 
-    $ strings /path/to/newglib/libc.so.6 | grep GLIBC_2.3
+    $ strings /path/to/new/glibc-2.23/libc.so.6 | grep GLIBC_2.3
 ————————————————
 
 https://n132.github.io/2018/04/30/2018-04-30-%E7%BC%96%E8%AF%91-Libc-2-23/
