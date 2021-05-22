@@ -1,35 +1,36 @@
-glibc简介
+## glibc简介
 
 glibc是GNU发布的libc库，即c运行库。glibc是linux系统中最底层的api，几乎其它任何运行库都会依赖于glibc。glibc除了封装linux操作系统所提供的系统服务外，它本身也提供了许多其它一些必要功能服务的实现。由于 glibc 囊括了几乎所有的 UNIX 通行的标准，可以想见其内容包罗万象。而就像其他的 UNIX 系统一样，其内含的档案群分散于系统的树状目录结构中，像一个支架一般撑起整个操作系统。
 
 查看系统glibc库版本可使用如下命令:
 
-$ strings /lib64/libc.so.6 |grep GLIBC_
+    $ strings /lib64/libc.so.6 |grep GLIBC_
 
 大家在遇到glibc库问题时候，可以先考虑下为什么要升级GLIBC库，能够通过其他影响性相对小的方式：
 
-在低版本的系统编译自己的产品，如果自己的产品确实不需要新版才支持的新特性
-用版本高的系统来编译，比如ubuntu，和centos的新版，但可能需要部署到较低版本，那么可以考虑用mock等技术制作更好的安装包，把依赖打入包内
-利用容器技术，如Docker，在低版本的操作系统内，轻量级的隔离出一个虚拟运行环境，适应你的程序。
+   1. 在低版本的系统编译自己的产品，如果自己的产品确实不需要新版才支持的新特性
+   2. 用版本高的系统来编译，比如ubuntu，和centos的新版，但可能需要部署到较低版本，那么可以考虑用mock等技术制作更好的安装包，把依赖打入包内
+   3. 利用容器技术，如Docker，在低版本的操作系统内，轻量级的隔离出一个虚拟运行环境，适应你的程序。
 
 确认无法解决，再考虑升级GLIBC库。例如，运行某些特定软件，报错：
 
-ImportError:  /lib64/libm.so.6: version `GLIBC_2.23' not found
+    ImportError:  /lib64/libm.so.6: version `GLIBC_2.23' not found
 ————————————————
 
-Upgrade glibc:
+## Upgrade glibc:
 
-mkdir glibc && cd glibc
-wget https://ftp.gnu.org/gnu/glibc/glibc-2.23.tar.gz
-tar xvzf glibc-2.23.tar.gz
-mkdir build && cd build
-# configured it with "-O2 -g -Wall" which are the gcc flags recommended in the RHES doc. 
+    mkdir glibc && cd glibc
+    wget https://ftp.gnu.org/gnu/glibc/glibc-2.23.tar.gz
+    tar xvzf glibc-2.23.tar.gz
+    mkdir build && cd build
+    
+    # configured it with "-O2 -g -Wall" which are the gcc flags recommended in the RHES doc. 
+    ../configure CFLAGS="-O2 -g -Wall" --prefix=/home/zheng.lulu/glibc-2.23
 
-../configure CFLAGS="-O2 -g -Wall" --prefix=/home/zheng.lulu/glibc-2.23
-make -j8
-make install
+    make -j8
+    make install
 
-When “make”, some errors will occur:
+When "make", some errors will occur:
 ————————————————
 
 //glibc-2.23\stdlib\setenv.c
@@ -39,14 +40,13 @@ setenv.c: In function ‘__unsetenv’:
 setenv.c:279:6: error: suggest explicit braces to avoid ambiguous ‘else’ [-Werror=dangling-else]
 
    if (ep != NULL)
-
- 在源码中，找到setenv.c 文件，在line 279 加上{ }:        
-
 ————————————————
+
+在源码中，找到setenv.c 文件，在line 279 加上{ }:  
 
   ep = __environ;
    if (ep != NULL)
- {
+ <font color=red>{</font>
      while (*ep != NULL)
        if (!strncmp (*ep, name, len) && (*ep)[len] == '=')
      {
@@ -54,7 +54,7 @@ unsetenv (const char *name)
      }
        else
      ++ep;
- }
+ <font color=red>}</font>
 
    UNLOCK;
 
