@@ -45,7 +45,7 @@ setenv.c:279:6: error: suggest explicit braces to avoid ambiguous ‘else’ [-W
 在源码中，找到setenv.c 文件，在line 279 加上{ }:  
     ep = __environ;
     if (ep != NULL)
- {
+ + {
     while (*ep != NULL)
        if (!strncmp (*ep, name, len) && (*ep)[len] == '=')
      {
@@ -53,14 +53,13 @@ unsetenv (const char *name)
      }
        else
      ++ep;
-}
++ }
 
    UNLOCK;
 
 ————————————————
 
  //glibc-2.23\sysdeps\ieee754\dbl-64\e_pow.c
-
 
 ../sysdeps/ieee754/dbl-64/e_pow.c: In function ‘checkint’:
 ../sysdeps/ieee754/dbl-64/e_pow.c:469:13: error: << in boolean context, did you mean '<' ? [-Werror=int-in-bool-context]
@@ -78,7 +77,8 @@ unsetenv (const char *name)
 cc1: all warnings being treated as errors
 
 ————————————————
- The easiest fix seems to be to add explicit '!= 0' to these lines. 在源码中，找到e_pow.c 修改如下:
+
+The easiest fix seems to be to add explicit '!= 0' to these lines. 在源码中，找到e_pow.c,修改如下:
 
  if (n << (k - 20)!=0)
 
@@ -92,7 +92,7 @@ cc1: all warnings being treated as errors
 
  //glic-2.23/sunrpc/rpc_parse.c
 
- rpc_parse.c: In function ‘get_prog_declaration’:
+rpc_parse.c: In function ‘get_prog_declaration’:
 
 rpc_parse.c:543:23: error: ‘%d’ directive writing between 1 and 10 bytes into a region of size 7 [-Werror=format-overflow=]
 
@@ -111,8 +111,9 @@ rpc_parse.c:543:5: note: ‘sprintf’ output between 5 and 14 bytes into a dest
      sprintf (name, "%s%d", ARGNAME, num); /* default name of argument */
 
 ————————————————
-    修改成：sprintf (name, "%s%d", ARGNAME, (short)num)
+修改成：
 
+    sprintf (name, "%s%d", ARGNAME, (short)num)
 ————————————————
 
 //glibc-2.23\nis\nis_call.c
@@ -127,9 +128,11 @@ nis_call.c:682:6: error: suggest explicit braces to avoid ambiguous ‘else’ [
 
 cc1: all warnings being treated as errors
 ————————————————
- 改成这样：
+ 
+改成这样：
 
-   if (*loc != NULL) {
+   if (*loc != NULL) 
++ {
 
     for (i = 1; i < 16; ++i)
 
@@ -151,13 +154,11 @@ cc1: all warnings being treated as errors
 
     loc = &nis_server_cache[i];
 
-  }
-
++ }
+  
   ————————————————
 
-
-
-nis/nss_nisplus/nisplus-alias.c
+//glibc-2.23/nis/nss_nisplus/nisplus-alias.c:
 
 nss_nisplus/nisplus-alias.c:300:12: error: argument 1 null where non-null expected [-Werror=nonnull]
 
@@ -171,7 +172,8 @@ nss_nisplus/nisplus-alias.c:300:12: error: argument 1 null where non-null expect
 
 [ERROR]      make[1]: *** [all] Error 2
 
-
+ ————————————————
+ 
 solution:
 
 diff --git a/nis/nss_nisplus/nisplus-alias.c b/nis/nss_nisplus/nisplus-alias.c
@@ -195,7 +197,6 @@ index 7f698b4e6d..509ace1f83 100644
    int olderr = errno;
 
  
-
 -  snprintf (buf, sizeof (buf), "[name=%s],%s", name, tablename_val);
 
 +  snprintf (buf, sizeof (buf), "[name=],%s", tablename_val);
@@ -214,13 +215,12 @@ solution:
     touch ld.so.conf
 
 
-验证
+### 验证
 
     $ strings /path/to/newglib/libc.so.6 | grep GLIBC_2.3
 ————————————————
 
 https://n132.github.io/2018/04/30/2018-04-30-%E7%BC%96%E8%AF%91-Libc-2-23/
-
 
 
 ## PatchELF
@@ -358,13 +358,13 @@ OK，已经替换成功了
 
     $ ./msisensor-ct
 
-Program: msisensor-ct (homopolymer and miscrosatelite analysis using cfDNA bam files)
-Version: v0.1
-Author: Xinyin Han && Shuying Zhang && Beifang Niu && Kai Ye
+    Program: msisensor-ct (homopolymer and miscrosatelite analysis using cfDNA bam files)
+    Version: v0.1
+    Author: Xinyin Han && Shuying Zhang && Beifang Niu && Kai Ye
 
-Usage:   msisensor-ct <command> [options]
+    Usage:   msisensor-ct <command> [options]
 
-Key commands:
+    Key commands:
 
- scan            scan homopolymers and miscrosatelites
- msi             msi scoring
+     scan            scan homopolymers and miscrosatelites
+     msi             msi scoring
