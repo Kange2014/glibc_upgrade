@@ -25,7 +25,7 @@ glibc是GNU发布的libc库，即c运行库。glibc是linux系统中最底层的
     mkdir build && cd build
     
     # configured it with "-O2 -g -Wall" which are the gcc flags recommended in the RHES doc. 
-    ../configure CFLAGS="-O2 -g -Wall" --prefix=/home/zheng.lulu/glibc-2.23
+    ../configure CFLAGS="-O2 -g -Wall" --prefix=/path/to/new/glibc-2.23
 
     make -j8
     make install
@@ -43,18 +43,17 @@ setenv.c:279:6: error: suggest explicit braces to avoid ambiguous ‘else’ [-W
 ————————————————
 
 在源码中，找到setenv.c 文件，在line 279 加上{ }:  
-
-  ep = __environ;
-   if (ep != NULL)
- <font color=red>{</font>
-     while (*ep != NULL)
+    ep = __environ;
+    if (ep != NULL)
+ {
+    while (*ep != NULL)
        if (!strncmp (*ep, name, len) && (*ep)[len] == '=')
      {
 unsetenv (const char *name)
      }
        else
      ++ep;
- <font color=red>}</font>
+}
 
    UNLOCK;
 
@@ -160,20 +159,6 @@ cc1: all warnings being treated as errors
 
 nis/nss_nisplus/nisplus-alias.c
 
-
-
-1
-
-2
-
-3
-
-4
-
-5
-
-6
-
 nss_nisplus/nisplus-alias.c:300:12: error: argument 1 null where non-null expected [-Werror=nonnull]
 
 [ERROR]      nss_nisplus/nisplus-alias.c:303:39: error: '%s' directive argument is null [-Werror=format-truncation=]
@@ -187,40 +172,7 @@ nss_nisplus/nisplus-alias.c:300:12: error: argument 1 null where non-null expect
 [ERROR]      make[1]: *** [all] Error 2
 
 
-
 solution:
-
-1
-
-2
-
-3
-
-4
-
-5
-
-6
-
-7
-
-8
-
-9
-
-10
-
-11
-
-12
-
-13
-
-14
-
-15
-
-16
 
 diff --git a/nis/nss_nisplus/nisplus-alias.c b/nis/nss_nisplus/nisplus-alias.c
 
@@ -235,8 +187,6 @@ index 7f698b4e6d..509ace1f83 100644
        return NSS_STATUS_UNAVAIL;
 
      }
-
- 
 
 -  char buf[strlen (name) + 9 + tablename_len];
 
@@ -255,40 +205,26 @@ index 7f698b4e6d..509ace1f83 100644
 
 ————————————————
 
-
-
-
-
-{安装目录}/etc/ld.so.conf 缺失
-
-reason:
-
-1
-
 {安装目录}/etc/ld.so.conf 缺失
 
 solution:
 
-1
+    cd /etc/
 
-2
-
-cd /etc/
-
-touch ld.so.conf
-
+    touch ld.so.conf
 
 
 验证
 
-$ strings /path/to/newglib/libc.so.6 | grep GLIBC_2.3
+    $ strings /path/to/newglib/libc.so.6 | grep GLIBC_2.3
 ————————————————
 
 https://n132.github.io/2018/04/30/2018-04-30-%E7%BC%96%E8%AF%91-Libc-2-23/
 
 
 
-PatchELF
+## PatchELF
+
 PatchELF 是一个用于修改现有 ELF 可执行文件和库的简单实用程序
 
 ELF: 可执行与可链接格式（Executable and Linkable Format），常被称为 ELF 格式。
@@ -299,21 +235,20 @@ ELF: 可执行与可链接格式（Executable and Linkable Format），常被称
 
 下面，我们先安装这个工具
 
-1. 安装
-下载
-https://github.com/dxsbiocc/patchelf
-先从 GitHub 上下载源码
+1. 下载安装
 
-配置环境
-./bootstrap.sh
-./configure
-安装
-make
-make check
-make install
-2. 使用
-「查看参数」
-$ patchelf 
+https://github.com/dxsbiocc/patchelf
+
+    ./bootstrap.sh
+    ./configure
+    make
+    make check
+    make install
+
+2. 使用[查看参数」
+
+    $ patchelf
+    
 syntax: patchelf
   [--set-interpreter FILENAME]
   [--page-size SIZE]
@@ -335,16 +270,20 @@ syntax: patchelf
   [--debug]
   [--version]
   FILENAME...
+  
 「参数描述」
 参数	描述
 patchelf 的主要功能与动态库解析器、RPATH 以及动态库有关。
 
 「使用方式」更改可执行文件的动态库解析器
-$ patchelf --set-interpreter /lib/my-ld-linux.so.2 my-program
+
+    $ patchelf --set-interpreter /lib/my-ld-linux.so.2 my-program
 更改可执行文件和库的RPATH
-$ patchelf --set-rpath /opt/my-libs/lib:/other-libs my-program
+
+    $ patchelf --set-rpath /opt/my-libs/lib:/other-libs my-program
 收缩可执行文件和库的RPATH
-$ patchelf --shrink-rpath my-program
+
+    $ patchelf --shrink-rpath my-program
 该命令会删除可执行文件中所有不包含 DT_NEEDED 字段指定的库的路径。
 
 例如：
@@ -354,30 +293,32 @@ $ patchelf --shrink-rpath my-program
 其中 RPATH 指定的是可执行文件的动态链接库的搜索路径
 
 删除动态库上声明的依赖项(DT_NEEDED)，可多次使用
-$ patchelf --remove-needed libfoo.so.1 my-program
+
+    $ patchelf --remove-needed libfoo.so.1 my-program
 添加动态库上声明的依赖项(DT_NEEDED)，可多次使用
-$ patchelf --add-needed libfoo.so.1 my-program
+
+    $ patchelf --add-needed libfoo.so.1 my-program
 替换动态库声明的依赖项(DT_NEEDED)，可多次使用
-$ patchelf --replace-needed liboriginal.so.1 libreplacement.so.1 my-program
+
+    $ patchelf --replace-needed liboriginal.so.1 libreplacement.so.1 my-program
 更改动态库的 SONAME
-$ patchelf --set-soname libnewname.so.3.4.5 path/to/libmylibrary.so.1.2.3
+
+    $ patchelf --set-soname libnewname.so.3.4.5 path/to/libmylibrary.so.1.2.3
 
 「示例」
-我有一个 msi 分析的可执行文件 msisensor-ct
+
+msisensor-ct
 
 在终端执行时，出现错误
 
-$ ./msisensor-ct
-./msisensor-ct: /lib64/libm.so.6: version `GLIBC_2.23' not found (required by ./msisensor-ct)
-从输出信息可以看出，需要一个高版本的库
-
-glibc-2.23 的 libm.so.6 库
-
+    $ ./msisensor-ct
+    ./msisensor-ct: /lib64/libm.so.6: version `GLIBC_2.23' not found (required by ./msisensor-ct)
+从输出信息可以看出，需要一个高版本的库：glibc-2.23 的 libm.so.6 库
 
 首先， 我们用 ldd 命令列出其动态库依赖关系
 
-$ ldd msisensor-ct
-./msisensor-ct: /lib64/libm.so.6: version `GLIBC_2.23' not found (required by ./msisensor-ct)
+    $ ldd msisensor-ct
+    ./msisensor-ct: /lib64/libm.so.6: version `GLIBC_2.23' not found (required by ./msisensor-ct)
         linux-vdso.so.1 =>  (0x00002aaaaaaab000)
         libz.so.1 => /lib64/libz.so.1 (0x00002aaaaaace000)
         libpthread.so.0 => /lib64/libpthread.so.0 (0x00002aaaaace5000)
@@ -388,23 +329,23 @@ $ ldd msisensor-ct
         libc.so.6 => /lib64/libc.so.6 (0x00002aaaab9ca000)
         /lib64/ld-linux-x86-64.so.2 (0x0000555555554000)
         libdl.so.2 => /lib64/libdl.so.2 (0x00002aaaabd8e000)
-OK！就是把下面这个动态库替换掉
+
+OK！就是把下面这个动态库替换掉：
 
 libm.so.6 => /lib64/libm.so.6
 
 更换 libm.so.6 的路径
 
-patchelf --replace-needed libm.so.6 /home/zheng.lulu/glibc-2.23/lib/libm.so.6 msisensor-ct
-
+    patchelf --replace-needed libm.so.6 /path/to/glibc-2.23/lib/libm.so.6 msisensor-ct
 
 再看下动态库列表
 
-$ ldd msisensor-ct
+    $ ldd msisensor-ct
         linux-vdso.so.1 =>  (0x00002aaaaaaab000)
         libz.so.1 => /lib64/libz.so.1 (0x00002aaaaaace000)
         libpthread.so.0 => /lib64/libpthread.so.0 (0x00002aaaaace5000)
         libstdc++.so.6 => /cm/local/apps/gcc/7.2.0/lib64/libstdc++.so.6 (0x00002aaaaaf01000)
-        /home/zheng.lulu/glibc-2.23/lib/libm.so.6 (0x00002aaaab282000)
+        /path/to/glibc-2.23/lib/libm.so.6 (0x00002aaaab282000)
         libgomp.so.1 => /cm/local/apps/gcc/7.2.0/lib64/libgomp.so.1 (0x00002aaaab587000)
         libgcc_s.so.1 => /cm/local/apps/gcc/7.2.0/lib64/libgcc_s.so.1 (0x00002aaaab7b5000)
         libc.so.6 => /lib64/libc.so.6 (0x00002aaaab9cc000)
@@ -413,11 +354,9 @@ $ ldd msisensor-ct
 
 OK，已经替换成功了
 
-
-
 接下去看看能不能直接运行
 
-$ ./msisensor-ct
+    $ ./msisensor-ct
 
 Program: msisensor-ct (homopolymer and miscrosatelite analysis using cfDNA bam files)
 Version: v0.1
@@ -429,4 +368,3 @@ Key commands:
 
  scan            scan homopolymers and miscrosatelites
  msi             msi scoring
-
